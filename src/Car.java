@@ -1,11 +1,12 @@
 
 public class Car {
-	private Point position;
-	private int direction; // 1 means heading from south to north or from west to east, -1 means otherwise
+	private Point position;	// position of the back of the car
 	
 	private final int length;
 	private final int area; // it's length of the car + the minimal length of gap 
 							// between this car and the one in front of it.
+	
+	public int direction; // 0 means heading north, 1 - heading east, 2 - heading south and 3 - heading west
 	
 	private int velocity; // current velocity
 	private final int acceleration;
@@ -15,23 +16,14 @@ public class Car {
 	private Street[] route;
 	private int currentStreet = 0;
 	
-	public static final int STANDARD_SIZE = 4000; //4000 mm is the standard length of a car
+	public static final int STANDARD_SIZE = 4000; //4000 millimetres is the standard length of a car
 	
-	public Car(Point pos, int len, int gap,
-			int vel, int acc, int vMod) {
-		position = pos;
-		length = len;
-		area = len + gap;
-		velocity = vel;
-		acceleration = acc;
-		velModifier = vMod;
-	}
-	
-	public Car(Point pos, int len, int gap,
+	public Car(Point pos, int len, int gap, int dir,
 			int vel, int acc, int vMod, Street[] rt) {
 		position = pos;
 		length = len;
 		area = len + gap;
+		direction = dir;
 		velocity = vel;
 		acceleration = acc;
 		velModifier = vMod;
@@ -42,6 +34,7 @@ public class Car {
 		position = other.position;
 		length = other.length;
 		area = other.area;
+		direction = other.direction;
 		velocity = other.velocity;
 		acceleration = other.acceleration;
 		velModifier = other.velModifier;
@@ -61,10 +54,6 @@ public class Car {
 		return position.getYpos();
 	}
 	
-	public int getDirection() {
-		return direction;
-	}
-	
 	public int getLength() {
 		return length;
 	}
@@ -75,6 +64,10 @@ public class Car {
 	
 	public int getGapToNext() {
 		return area - length;
+	}
+	
+	public int getDirection() {
+		return direction;
 	}
 	
 	public int getVelocity() {
@@ -97,10 +90,6 @@ public class Car {
 		position.setYpos(y);
 	}
 	
-	public void setDirection(int dir) {
-		direction = dir;
-	}
-	
 	public void setVelocity(int vel) {
 		velocity = vel;
 	}
@@ -119,5 +108,17 @@ public class Car {
 	
 	public void setRoute(Street[] rt) {
 		route = rt;
+	}
+	
+	public int calculateDistToMove(int time, int maxVel) {
+		if(velocity >= maxVel) {
+			return maxVel * time;
+		}
+		else {
+			int deltaVel = maxVel - velocity;
+			int timeAccelerating = deltaVel / acceleration;
+			return timeAccelerating * velocity + (deltaVel * timeAccelerating) >>> 1 +
+					+ (time - timeAccelerating) * maxVel;
+		}
 	}
 }
