@@ -1,166 +1,181 @@
+package trafficSimmulation;
 
-public class Street {
-	private final Point posStart; // start is at west/south
-	private final Point posEnd;   // end is at east/north
-	private final boolean orientation; // 1 if street is north-south oriented, 0 otherwise
+import java.awt.Color;
+import java.awt.Graphics;
+
+public class Street extends StreetObject{
 	
-	private int numOfLanes;
-	private int lanesDirection; // How many lanes face towards north/east
-	private int length;
+	private CarBuffer[] lanes;
+	private final StreetObject[] ends = new StreetObject[2];
+	
 	private int maxVel;
 	
-	private Car[] laneBuffer;
-	private int[] startOfLane;
-	private int capacityOfLane;
+	public static final int SOUTH_NORTH = 0;
+	public static final int WEST_EAST = 1;
+	public final int orientation;
 	
-	private int[] firstCar;
-	private int[] lastCar;
-	private int[] numOfCars;
-	
-	
-	public Street(Point start, Point end, int lan, int dir, int len, int mVel) {
-		posStart = start;
-		posEnd = end;
-		orientation = start.getXpos() == end.getXpos();
+
+	public Street(int TopLeftX, int TopLeftY, int BottomRightX, int BottomRightY, int numOfLanes,
+				  int lanesOriented, int orientation) {
 		
-		numOfLanes = lan;
-		lanesDirection = dir;
-		length = len;
-		maxVel = mVel;
+		super(TopLeftX, TopLeftY, BottomRightX, BottomRightY);
 		
+		this.orientation = orientation;
 		
-		capacityOfLane = 2 * len / Car.STANDARD_SIZE;
-		int tempSize = lan * capacityOfLane;
+		int start;
+		int end;
+		Direction dir1;
+		Direction dir2;
 		
-		laneBuffer = new Car[tempSize];
-		startOfLane = new int[lan];
-		numOfCars = new int[lan];
+		if(orientation == SOUTH_NORTH) {
+			start = BottomRightY;
+			end = TopLeftY;
+			dir1 = Direction.North;
+			dir2 = Direction.South;
+		}
+		else {
+			start = TopLeftX;
+			end = BottomRightX;
+			dir1 = Direction.East;
+			dir2 = Direction.West;
+		}
 		
-		int tempIndex = 0;
-		for(int i = 0; i < lan; ++i) {
-			startOfLane[i] = tempIndex;
-			numOfCars[i] = 0;
-			
-			firstCar[i] = 0;
-			lastCar[i] = 0;
-			
-			tempIndex += capacityOfLane;
+		maxVel = 50; // meters per second
+		
+		lanes = new CarBuffer[numOfLanes];
+		for(int i = 0; i < lanesOriented; ++i) { //lanesOriented value means how many lanes should be directed towards North/East
+			lanes[i] = new CarBuffer(1_000_000);
+			lanes[i].setStart(start);
+			lanes[i].setEnd(end);
+			lanes[i].setMaxVel(maxVel);
+			lanes[i].setDirection(dir1);
+		}
+		
+		for(int i = lanesOriented; i < numOfLanes; ++i) {
+			lanes[i] = new CarBuffer(1_000_000);
+			lanes[i].setStart(end);
+			lanes[i].setEnd(start);
+			lanes[i].setMaxVel(maxVel);
+			lanes[i].setDirection(dir2);
 		}
 	}
 	
-	public Point getPosStart() {
-		return posStart;
+	public Street(int TopLeftX, int TopLeftY, int BottomRightX, int BottomRightY, int numOfLanes,
+				  int lanesOriented, int orientation, StreetObject obj1, StreetObject obj2) {
+		
+		this(TopLeftX, TopLeftY, BottomRightX, BottomRightY, numOfLanes, lanesOriented, orientation);
+		
+		ends[0] = obj1;
+		ends[1] = obj2;
 	}
 	
-	public Point getPosEnd() {
-		return posEnd;
+	public void addFirstEnd(StreetObject obj) {
+		ends[0] = obj;
 	}
 	
-	public int getNumOflanes() {
-		return numOfLanes;
+	public void addSecondEnd(StreetObject obj) {
+		ends[1] = obj;
 	}
 	
-	public int getLanesDirection() {
-		return lanesDirection;
+	@Override
+	public void tick(int time) {
+		for(int i = 0; i < lanes.length; ++i) {
+			lanes[i].tick(time);
+		}
 	}
 	
-	public int getLength() {
-		return length;
+	@Override
+	public void renderCars(Graphics g) {
+
+		for(int i = 0; i < lanes.length; ++i) {
+			lanes[i].render(g);
+		}
+	}
+	
+	@Override
+	public void renderRoad(Graphics g) {
+		g.setColor(Color.black);
+		
+		int x = TopLeftX / Model.MILLIMETRES_PER_PIXEL;
+		int y = TopLeftY / Model.MILLIMETRES_PER_PIXEL;
+		int width = super.getWidth() / Model.MILLIMETRES_PER_PIXEL;
+		int height = super.getHeight() / Model.MILLIMETRES_PER_PIXEL;
+		
+		g.fillRect(x, y, width, height);
+		
+		g.setColor(Color.red);
+		g.drawRect(x, y, width, height);
+	}
+	
+	public void addCar() {
+		int position;
+		int offset = getWidth() / (lanes.length * 2);
+		
+		if(isSouthNorthOriented()) {
+			position = TopLeftX;
+		}
+		else {
+			position = TopLeftY;
+		}
+		
+		//System.out.println("Car added   possition: " + position); //DEBUG
+		
+		for(int j = 0; j < 2; ++j) {
+			for(int i = 0; i < 1; ++i) {
+				lanes[j].addCar(position + (j+1) * offset);
+			}	
+		}
+	}
+	
+	public Cross makeCrossNorth() {
+		Cross cross = new Cross(TopLeftX, TopLeftY - getWidth(), BottomRightX, TopLeftY);
+		cross.addSouthObject(this);
+		return cross;
+	}
+	
+	public Cross makeCrossEast() {
+		Cross cross = new Cross(BottomRightX, TopLeftY, BottomRightX +getWidth(), BottomRightY);
+		cross.addSouthObject(this);
+		return cross;
+	}
+	
+	public Cross makeCrossSouth() {
+		Cross cross = new Cross(TopLeftX, BottomRightY, BottomRightX, BottomRightY + getWidth());
+		cross.addSouthObject(this);
+		return cross;
+	}
+	
+	public Cross makeCrossWest() {
+		Cross cross = new Cross(TopLeftX - getWidth(), TopLeftY, TopLeftX, BottomRightY);
+		cross.addSouthObject(this);
+		return cross;
 	}
 	
 	public int getMaxVel() {
 		return maxVel;
 	}
 	
-	public void setNumOflanes(int lan) {
-		numOfLanes = lan;
+	public boolean isSouthNorthOriented() {
+		return orientation == SOUTH_NORTH;
 	}
 	
-	public void setLanesDirection(int dir) {
-		lanesDirection = dir;
+	public boolean isWestEastOriented() {
+		return orientation == WEST_EAST;
 	}
 	
-	public void setLength(int len) {
-		length = len;
+	@Override
+	public int getWidth() {
+		if(orientation == SOUTH_NORTH)
+			return BottomRightX - TopLeftX;
+		
+		return BottomRightY - TopLeftY;
 	}
 	
-	public void setMaxVel(int vel) {
-		maxVel = vel;
+	public int getLength() {
+		if(orientation == SOUTH_NORTH)
+			return BottomRightY - TopLeftY;
+		
+		return BottomRightX - TopLeftX;
 	}
-	
-	public boolean checkIfContains(Point p) {
-		return p.getXpos() <= posEnd.getXpos() && p.getYpos() <= posEnd.getYpos() &&
-			   p.getXpos() >= posStart.getXpos() && p.getYpos() >= posStart.getYpos();
-	}
-	
-	public int decideLane(boolean dir, Car car) {
-		int tempIndex = -1;
-		int tempNumOfCars =  2_147_483_647; //this magic number is the maximum value an integer can store
-		
-		if(dir) {
-			for(int i = 0; i < lanesDirection; ++i) {
-				if(numOfCars[i] < tempNumOfCars && isSpace(car.getArea(), i)) {
-					tempIndex = i;
-					tempNumOfCars = numOfCars[i];
-				}
-			}
-		}
-		else {
-			for(int i = lanesDirection; i < numOfLanes; ++i) {
-				if(numOfCars[i] < tempNumOfCars && isSpace(car.getArea(), i)) {
-					tempIndex = i;
-					tempNumOfCars = numOfCars[i];
-				}
-			}
-		}
-		
-		return tempIndex;
-	}
-	
-	private boolean isSpace(int space, int laneIndex) {
-		
-		Car car = laneBuffer[lastCar[laneIndex] % capacityOfLane + startOfLane[laneIndex]];
-		
-		if(orientation) { //south-north oriented
-			if(laneIndex < lanesDirection) { //start of the lane is at the south - at the start of the street
-				return 	space <= car.getYpos() - car.getLength() - posStart.getYpos();
-			}
-			
-			//start of the lane is at the north - at the end of the street
-			return space <= posEnd.getYpos() - car.getYpos() - car.getLength();
-		}
-		
-		//west-east oriented
-		if(laneIndex < lanesDirection) { //start of the lane is at the west - at the start of the street
-			return space <= car.getXpos() - car.getLength() - posStart.getXpos();
-		}
-		
-		//start of the lane is at the east - at the end of the street
-		return space <= posEnd.getXpos() - car.getXpos() - car.getLength();
-	}
-	
-	public boolean push(boolean dir, Car car) {
-		int tempIndex = decideLane(dir, car);
-		
-		if(tempIndex < 0)
-			return false;
-		
-		++numOfCars[tempIndex];
-		
-		laneBuffer[startOfLane[tempIndex] + ++lastCar[tempIndex] % capacityOfLane] = car;
-		return true;
-	}
-	
-	public Car pop(int lane) {
-		--numOfCars[lane];
-		Car car = laneBuffer[startOfLane[lane] + firstCar[lane]++ % capacityOfLane];
-		
-		laneBuffer[startOfLane[lane] + firstCar[lane]++ % capacityOfLane] = null;
-		return car;
-	}
-	
-	private update(int buffIndex) {
-		if(laneBuffer[buffIndex].getWhenReady() <= )
-	}
-	 
+
 }
