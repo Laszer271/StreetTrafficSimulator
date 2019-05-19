@@ -115,24 +115,38 @@ public class CarBuffer {
 	public void addCar(int position) {
 		Random r = new Random();
 		Car car;
+		Car carNext;
 		if(dir == Direction.North) {
 			//System.out.println("North   start: " + start + "   end: " + end); //DEBUG
-			car = new Car(position, r.nextInt(start - end) + end, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 500, Direction.North, 0, 1, 5, null);
+			int pos = r.nextInt(start - end) + end;
+			int pos2 = pos + r.nextInt(80_000) + 20_000;
+			car = new Car(position, pos, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.North, 0, 10000, 5, null);
+			carNext = new Car(position, pos2, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.North, 0, 10000, 5, null);
 		}
 		else if(dir == Direction.East) {
 			//System.out.println("East   start: " + start + "   end: " + end);
-			car = new Car(r.nextInt(end - start) + start, position, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 500, Direction.East, 0, 1, 5, null);
+			int pos = r.nextInt(end - start) + start;
+			int pos2 = pos - r.nextInt(80_000) + 20_000;
+			car = new Car(pos, position, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.East, 0, 10000, 5, null);
+			carNext = new Car(pos2, position, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.East, 0, 10000, 5, null);
 		}
 		else if(dir == Direction.South) {
 			//System.out.println("South   start: " + start + "   end: " + end);
-			car = new Car(position, r.nextInt(end - start) + start, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 500, Direction.South, 0, 1, 5, null);
+			int pos = r.nextInt(end - start) + start;
+			int pos2 = pos - r.nextInt(80_000) + 20_000;
+			car = new Car(position, pos, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.South, 0, 10000, 5, null);
+			carNext = new Car(position, pos2, 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.South, 0, 10000, 5, null);
 		}
 		else {
 			//System.out.println("West   start: " + start + "   end: " + end);
-			car = new Car(r.nextInt(start - end) + end, position , 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 500, Direction.West, 0, 1, 5, null);
+			int pos = r.nextInt(start - end) + end;
+			int pos2 = pos + r.nextInt(80_000) + 20_000;
+			car = new Car(pos, position , 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.West, 0, 10000, 5, null);
+			carNext = new Car(pos2, position , 10 * Model.MILLIMETRES_PER_PIXEL, 5 * Model.MILLIMETRES_PER_PIXEL, 5000, Direction.West, 0, 10000, 5, null);
 		}
 		
 		push(car);
+		push(carNext);
 	}
 	
 	public void setDirection(Direction dir) {

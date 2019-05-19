@@ -49,7 +49,7 @@ public class Controller implements Runnable {
 				++counter;
 				if(counter == TICKS_PER_SEC) {
 					counter = 0;
-					//System.out.println("FPS: " + frames);
+					System.out.println("FPS: " + frames);
 					frames = 0;
 				}
                 timer += CLOCK_RATE;

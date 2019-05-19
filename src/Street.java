@@ -40,7 +40,7 @@ public class Street extends StreetObject{
 			dir2 = Direction.West;
 		}
 		
-		maxVel = 50; // meters per second
+		maxVel = 50000; // millimeters per second
 		
 		lanes = new CarBuffer[numOfLanes];
 		for(int i = 0; i < lanesOriented; ++i) { //lanesOriented value means how many lanes should be directed towards North/East
@@ -118,7 +118,7 @@ public class Street extends StreetObject{
 			position = TopLeftY;
 		}
 		
-		//System.out.println("Car added   possition: " + position); //DEBUG
+		//System.out.println("Car added   position: " + position); //DEBUG
 		
 		for(int j = 0; j < 2; ++j) {
 			for(int i = 0; i < 1; ++i) {

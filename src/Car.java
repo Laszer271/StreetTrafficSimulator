@@ -14,7 +14,7 @@ public class Car {
 	public Direction direction; 
 	
 	private int velocity; // current velocity in millimeters per second
-	private final int acceleration; // in millimeters per second
+	private final int acceleration; // in millimeters per second^2
 	private final int velModifier; // the car will try to get to the speed of 
 								   // allowed speed at the street + his velModifier
 	
@@ -104,55 +104,68 @@ public class Car {
 	}
 	
 	public int calculateDistToMove(int time, int maxVel) {
-		//System.out.println("velocity: " + velocity + " mm/ms"); //DEBUG
+		//A proper equation of calculating the distance in uniformly accelerated motion is not used as the callculation was meant
+		//to be as fast as possible. Simplified algorithm (that works fine it time is small) is used instead
+		
+		//maxVel, velModifier and velocity are in millimeters per second
+		//distance is in millimeters
+		//acceleration is in millimeters per second squared
 
+		maxVel += velModifier;
+		//System.out.println("velocity: " + velocity  + " mm/s"); //DEBUG
 		if(velocity >= maxVel) {
 			velocity = maxVel;
-			return maxVel * time;
 		}
-		else {
-			int deltaVel = maxVel - velocity;
-			int timeAccelerating =  1000 * deltaVel / acceleration;
-			if(timeAccelerating > time) {
-				timeAccelerating = time;
-			}
-			
-			int distance = 	timeAccelerating * velocity + ((acceleration * timeAccelerating * timeAccelerating / 1000) >>> 1) +
-							+ (time - timeAccelerating) * maxVel;
-			velocity += timeAccelerating * acceleration;
-			return distance;
-		}
+		
+		int distance = velocity * time / 1000;
+		velocity += acceleration * time / 1000;
+		return distance;
 	}
 	
 	public void tick(int time, Car other, int maxVel) {
-		System.out.println("Car (not first) ticked");
-		int distanceToMove = calculateDistToMove(time, maxVel);
+		
 		int distanceBetweenCars;
+		int distanceToMove;
 		
-		if(xPos == other.getXPos()) {
-			distanceBetweenCars = yPos - other.getYPos();
+		if(direction == Direction.North) {
+			distanceBetweenCars = yPos - area - other.yPos;
+			distanceToMove = calculateDistToMove(time, maxVel);
+			
+			if(distanceToMove > distanceBetweenCars) {
+				distanceToMove = distanceBetweenCars;
+			}
+			
+			yPos -= distanceToMove;
 		}
-		else {
-			distanceBetweenCars = xPos - other.getXPos();
-		}
-		System.out.println("BetweenCars: " + distanceBetweenCars);
-		
-		if(direction == Direction.North || direction == Direction.West) {
-			distanceToMove = ~distanceToMove + 1;
-			distanceBetweenCars = ~distanceBetweenCars + 1;
-		}
-		
-		System.out.println("Move: " + distanceToMove);
+		else if(direction == Direction.East) {
+			distanceBetweenCars = other.xPos - area - xPos;
+			distanceToMove = calculateDistToMove(time, maxVel);
 
-		if(distanceToMove > distanceBetweenCars) {
-			distanceToMove = distanceBetweenCars;
+			if(distanceToMove > distanceBetweenCars) {
+				distanceToMove = distanceBetweenCars;
+			}
+			
+			xPos += distanceToMove;
 		}
-		
-		if(xPos == other.getXPos()) {
+		else if(direction == Direction.South) {
+			distanceBetweenCars = other.yPos - area - yPos;
+			distanceToMove = calculateDistToMove(time, maxVel);
+
+			if(distanceToMove > distanceBetweenCars) {
+				distanceToMove = distanceBetweenCars;
+			}
+			
 			yPos += distanceToMove;
 		}
 		else {
-			xPos += distanceToMove;
+			distanceBetweenCars = xPos - area - other.xPos;
+			distanceToMove = calculateDistToMove(time, maxVel);
+
+			if(distanceToMove > distanceBetweenCars) {
+				distanceToMove = distanceBetweenCars;
+			}
+			
+			xPos -= distanceToMove;
 		}
 	}
 	
