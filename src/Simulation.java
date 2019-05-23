@@ -1,4 +1,6 @@
-package trafficSimmulation;
+import trafficSimulation.Controller;
+import trafficSimulation.Model;
+import trafficSimulation.View;
 
 public class Simulation {
 
@@ -6,8 +8,6 @@ public class Simulation {
 		Model model = new Model();
 		View view = new View(model, 1000, 1000);
 		Controller controller = new Controller(model, view);
-		controller.makeBoard();
-		controller.start();
 	}
 	
 }
