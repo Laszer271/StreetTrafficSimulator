@@ -1,5 +1,6 @@
-package trafficSimmulation;
+package trafficSimulation;
 
+import java.util.LinkedList;
 
 public class Controller implements Runnable {
 	
@@ -14,6 +15,8 @@ public class Controller implements Runnable {
 	public Controller(Model model, View view) {
 		this.model = model;
 		this.view = view;
+		makeBoard();
+		start();
 	}
 	
 	public synchronized void start() {
@@ -49,7 +52,7 @@ public class Controller implements Runnable {
 				++counter;
 				if(counter == TICKS_PER_SEC) {
 					counter = 0;
-					System.out.println("FPS: " + frames);
+					//System.out.println("FPS: " + frames);
 					frames = 0;
 				}
                 timer += CLOCK_RATE;
@@ -63,29 +66,23 @@ public class Controller implements Runnable {
 		Street[] streets = new Street[21];
 		Cross[] crosses = new Cross[8];
 		
-		int length = 200 * Model.MILLIMETRES_PER_PIXEL;
-		int length2 = 140 * Model.MILLIMETRES_PER_PIXEL;
-		int begginingX = 500 * Model.MILLIMETRES_PER_PIXEL;
+		int length = 200_000;
+		int length2 = 140_000;
+		int begginingX = 500_000;
+		int widthOfCross = 20_000;
 		int begginingY = begginingX;
 		
-		crosses[0] = new Cross(begginingX, begginingY, begginingX + 20 * Model.MILLIMETRES_PER_PIXEL, begginingY + 20 * Model.MILLIMETRES_PER_PIXEL);
+		crosses[0] = new Cross(begginingX, begginingY, begginingX + widthOfCross, begginingY + widthOfCross);
 		streets[0] = crosses[0].makeNorthStreet(length, 2, 1);
 		streets[1] = crosses[0].makeEastStreet(length2, 2, 1);
 		streets[2] = crosses[0].makeSouthStreet(length, 2, 1);
 		streets[3] = crosses[0].makeWestStreet(length, 2, 1);
 		
 		crosses[1] = streets[0].makeCrossNorth();
-		streets[0].addSecondEnd(crosses[1]);
-		
 		crosses[2] = streets[1].makeCrossEast();
-		streets[0].addSecondEnd(crosses[2]);
-		
 		crosses[3] = streets[2].makeCrossSouth();
-		streets[0].addSecondEnd(crosses[3]);
-		
 		crosses[4] = streets[3].makeCrossWest();
-		streets[0].addSecondEnd(crosses[4]);
-		
+
 		streets[4] = crosses[1].makeNorthStreet(length, 2, 1);
 		streets[5] = crosses[1].makeWestStreet(length, 2, 1);
 		streets[6] = crosses[1].makeEastStreet(length2, 2, 1);
@@ -103,32 +100,68 @@ public class Controller implements Runnable {
 		streets[15] = crosses[4].makeSouthStreet(length, 2, 1);
 		
 		crosses[5] = streets[7].makeCrossNorth();
-		streets[7].addSecondEnd(crosses[5]);
-		streets[6].addSecondEnd(crosses[5]);
-		
+
 		streets[16] = crosses[5].makeNorthStreet(length, 2, 1);
 		streets[17] = crosses[5].makeEastStreet(length, 2, 1);
 		
 		crosses[6] = streets[12].makeCrossEast();
-		streets[12].addSecondEnd(crosses[6]);
-		streets[8].addSecondEnd(crosses[6]);
-		
+
 		streets[18] = crosses[6].makeEastStreet(length >>> 1, 2, 1);
 		streets[19] = crosses[6].makeSouthStreet(length >>> 1, 2, 1);
 		
 		crosses[7] = streets[19].makeCrossSouth();
-		streets[17].addSecondEnd(crosses[7]);
-		
+
 		streets[20] = crosses[7].makeEastStreet(length >>> 2, 2, 1);
- 		
+		
+		streets[6].addSecondEnd(crosses[5]);
+		streets[8].addSecondEnd(crosses[6]);
+		crosses[5].addWestObject(streets[6]);
+		crosses[6].addNorthObject(streets[8]);
+		
+		model.makeGraph(crosses, streets);
+		
 		for(int i = 0; i < streets.length; ++i) {
 			streets[i].addCar();
-			//streets[i].addCar();
-			model.addObject(streets[i]);
 		}
-		for(int i = 0; i < crosses.length; ++i) {
-			model.addObject(crosses[i]);
+
+		Graph g = new Graph(crosses, streets);
+		g.shortestRoute(crosses[7], crosses[6]);
+	}
+	
+	private boolean isRoute(Cross start, Cross end) { //For debugging
+		LinkedList<Cross> list = new LinkedList<Cross>();
+		
+		if(start == end)
+			return true;
+		
+		list.add(start);
+		for(int i = 0; i < list.size(); ++i) {
+			Street[] tempStreet = new Street[4];
+			tempStreet[0] = list.get(i).getNorthStreet();
+			tempStreet[1] = list.get(i).getEastStreet();
+			tempStreet[2] = list.get(i).getSouthStreet();
+			tempStreet[3] = list.get(i).getWestStreet();
+			
+			for(int j = 0; j < tempStreet.length; ++j) {
+				if(tempStreet[j] == null)
+					continue;
+				if(list.get(i) != tempStreet[j].getEnd() && tempStreet[j].getEnd() != null) {
+					if(!list.contains(tempStreet[j].getEnd())) {
+						list.add((Cross)tempStreet[j].getEnd());
+					}
+				}
+				else if(tempStreet[j].getStart() != null) {
+					if(!list.contains(tempStreet[j].getStart())) {
+						list.add((Cross)tempStreet[j].getStart());
+					}
+				}
+				
+				if(list.getLast() == end)
+					return true;
+			}
 		}
+		
+		return false;
 	}
 	
 }

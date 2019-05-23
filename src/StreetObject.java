@@ -1,4 +1,4 @@
-package trafficSimmulation;
+package trafficSimulation;
 
 import java.awt.Color;
 import java.awt.Graphics;

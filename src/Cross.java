@@ -1,17 +1,17 @@
-package trafficSimmulation;
+package trafficSimulation;
 
 import java.awt.Graphics;
 
 public class Cross extends StreetObject{
 	
-	private final StreetObject[] ends = new StreetObject[4];
+	private final Street[] ends = new Street[4];
 
 	public Cross(int TopLeftX, int TopLeftY, int BottomRightX, int BottomRightY) {
 		super(TopLeftX, TopLeftY, BottomRightX, BottomRightY);
 	}
 	
 	public Cross(int TopLeftX, int TopLeftY, int BottomRightX, int BottomRightY,
-				 StreetObject north, StreetObject east, StreetObject south, StreetObject west) {
+				 Street north, Street east, Street south, Street west) {
 		this(TopLeftX, TopLeftY, BottomRightX, BottomRightY);
 		
 		ends[0] = north;
@@ -20,19 +20,19 @@ public class Cross extends StreetObject{
 		ends[3] = west;
 	}
 	
-	public void addNorthObject(StreetObject north) {
+	public void addNorthObject(Street north) {
 		ends[0] = north;
 	}
 	
-	public void addEastObject(StreetObject east) {
+	public void addEastObject(Street east) {
 		ends[1] = east;
 	}
 	
-	public void addSouthObject(StreetObject south) {
+	public void addSouthObject(Street south) {
 		ends[2] = south;
 	}
 	
-	public void addWestObject(StreetObject west) {
+	public void addWestObject(Street west) {
 		ends[3] = west;
 	}
 	
@@ -46,21 +46,21 @@ public class Cross extends StreetObject{
 	public Street makeEastStreet(int length, int numOfLanes, int lanesOriented) {
 		Street street = new Street(BottomRightX, TopLeftY, BottomRightX + length, BottomRightY, numOfLanes, lanesOriented, Street.WEST_EAST);
 		street.addFirstEnd(this);
-		addNorthObject(street);
+		addEastObject(street);
 		return street;
 	}
 	
 	public Street makeSouthStreet(int length, int numOfLanes, int lanesOriented) {
 		Street street = new Street(TopLeftX, BottomRightY, BottomRightX, BottomRightY + length, numOfLanes, lanesOriented, Street.SOUTH_NORTH);
 		street.addFirstEnd(this);
-		addNorthObject(street);
+		addSouthObject(street);
 		return street;
 	}
 	
 	public Street makeWestStreet(int length, int numOfLanes, int lanesOriented) {
 		Street street = new Street(TopLeftX - length, TopLeftY, TopLeftX, BottomRightY, numOfLanes, lanesOriented, Street.WEST_EAST);
 		street.addFirstEnd(this);
-		addNorthObject(street);
+		addWestObject(street);
 		return street;
 	}
 
@@ -74,6 +74,22 @@ public class Cross extends StreetObject{
 	public void renderCars(Graphics g) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public Street getNorthStreet() {
+		return ends[0];
+	}
+	
+	public Street getEastStreet() {
+		return ends[1];
+	}
+	
+	public Street getSouthStreet() {
+		return ends[2];
+	}
+	
+	public Street getWestStreet() {
+		return ends[3];
 	}
 	
 }

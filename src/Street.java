@@ -1,4 +1,4 @@
-package trafficSimmulation;
+package trafficSimulation;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -110,7 +110,6 @@ public class Street extends StreetObject{
 	public void addCar() {
 		int position;
 		int offset = getWidth() / (lanes.length * 2);
-		
 		if(isSouthNorthOriented()) {
 			position = TopLeftX;
 		}
@@ -122,7 +121,7 @@ public class Street extends StreetObject{
 		
 		for(int j = 0; j < 2; ++j) {
 			for(int i = 0; i < 1; ++i) {
-				lanes[j].addCar(position + (j+1) * offset);
+				lanes[j].addCar(position + (2-j) * offset);
 			}	
 		}
 	}
@@ -130,24 +129,28 @@ public class Street extends StreetObject{
 	public Cross makeCrossNorth() {
 		Cross cross = new Cross(TopLeftX, TopLeftY - getWidth(), BottomRightX, TopLeftY);
 		cross.addSouthObject(this);
+		addSecondEnd(cross);
 		return cross;
 	}
 	
 	public Cross makeCrossEast() {
-		Cross cross = new Cross(BottomRightX, TopLeftY, BottomRightX +getWidth(), BottomRightY);
-		cross.addSouthObject(this);
+		Cross cross = new Cross(BottomRightX, TopLeftY, BottomRightX + getWidth(), BottomRightY);
+		cross.addWestObject(this);
+		addSecondEnd(cross);
 		return cross;
 	}
 	
 	public Cross makeCrossSouth() {
 		Cross cross = new Cross(TopLeftX, BottomRightY, BottomRightX, BottomRightY + getWidth());
-		cross.addSouthObject(this);
+		cross.addNorthObject(this);
+		addSecondEnd(cross);
 		return cross;
 	}
 	
 	public Cross makeCrossWest() {
 		Cross cross = new Cross(TopLeftX - getWidth(), TopLeftY, TopLeftX, BottomRightY);
-		cross.addSouthObject(this);
+		cross.addEastObject(this);
+		addSecondEnd(cross);
 		return cross;
 	}
 	
@@ -176,6 +179,14 @@ public class Street extends StreetObject{
 			return BottomRightY - TopLeftY;
 		
 		return BottomRightX - TopLeftX;
+	}
+	
+	public StreetObject getStart() {
+		return ends[0];
+	}
+	
+	public StreetObject getEnd() {
+		return ends[1];
 	}
 
 }

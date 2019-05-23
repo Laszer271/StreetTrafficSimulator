@@ -1,4 +1,4 @@
-package trafficSimmulation;
+package trafficSimulation;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -122,6 +122,7 @@ public class Car {
 		return distance;
 	}
 	
+	//tick for all cars in lane except of the first one
 	public void tick(int time, Car other, int maxVel) {
 		
 		int distanceBetweenCars;
@@ -169,58 +170,54 @@ public class Car {
 		}
 	}
 	
-	public void tick(int time, int end, int maxVel) {
+	//tick only for the first car in the lane
+	public void tick(int time, int end, int maxVel) { 
 		int distanceToMove = calculateDistToMove(time, maxVel);
 		int position;
 		
 		if(!isWaitingForGreenLight) {
-			//System.out.println("Car (first) ticked   Distance: " + distanceToMove); //DEBUG
 			
 			if(direction == Direction.North) {
 				position = yPos - distanceToMove;
 				if(position > end) {
-					//System.out.println("Moved : " + (yPos - position));
 					yPos = position;
 					
 				}
 				else {
-					yPos = end;
+					yPos = end + length;
 					isWaitingForGreenLight = true;
 				}
 			}
 			else if(direction == Direction.East) {
 				position = xPos + distanceToMove;
 				if(position < end) {
-					//System.out.println("Moved : " + (position - xPos));
 					xPos = position;
 					
 				}
 				else {
-					xPos = end;
+					xPos = end - length;
 					isWaitingForGreenLight = true;
 				}
 			}
 			else if(direction == Direction.South) {
 				position = yPos + distanceToMove;
 				if(position < end) {
-					//System.out.println("Moved : " + (position - yPos));
 					yPos = position;
 					
 				}
 				else {
-					yPos = end;
+					yPos = end - length;
 					isWaitingForGreenLight = true;
 				}
 			}
 			else {
 				position = xPos - distanceToMove;
 				if(position > end) {
-					//System.out.println("Moved : " + (position - xPos));
 					xPos = position;
-					
+				
 				}
 				else {
-					xPos = end;
+					xPos = end + length;
 					isWaitingForGreenLight = true;
 				}
 			}
@@ -233,8 +230,41 @@ public class Car {
 	
 	public void render(Graphics g) {
 		g.setColor(Color.red);
-		int length = direction == Direction.North || direction == Direction.South ? this.width / Model.MILLIMETRES_PER_PIXEL : this.length / Model.MILLIMETRES_PER_PIXEL;
-		int width = direction == Direction.North || direction == Direction.South ? this.length / Model.MILLIMETRES_PER_PIXEL : this.width / Model.MILLIMETRES_PER_PIXEL;
-		g.fillRect(xPos / Model.MILLIMETRES_PER_PIXEL, yPos / Model.MILLIMETRES_PER_PIXEL, length, width);
+		int length;
+		int width;
+		int topLeftX;
+		int topLeftY;
+		
+		if(direction == Direction.North) {
+			width = this.width / Model.MILLIMETRES_PER_PIXEL;
+			length = this.length / Model.MILLIMETRES_PER_PIXEL;
+			
+			topLeftX = xPos / Model.MILLIMETRES_PER_PIXEL - width / 2;
+			topLeftY = yPos / Model.MILLIMETRES_PER_PIXEL - length;
+			
+		}
+		else if(direction == Direction.East) {
+			width = this.length / Model.MILLIMETRES_PER_PIXEL;
+			length = this.width / Model.MILLIMETRES_PER_PIXEL;
+			
+			topLeftX = xPos / Model.MILLIMETRES_PER_PIXEL;
+			topLeftY = yPos / Model.MILLIMETRES_PER_PIXEL - length / 2;
+		}
+		else if(direction == Direction.South) {
+			width = this.width / Model.MILLIMETRES_PER_PIXEL;
+			length = this.length / Model.MILLIMETRES_PER_PIXEL;
+			
+			topLeftX = xPos / Model.MILLIMETRES_PER_PIXEL - width / 2;
+			topLeftY = yPos / Model.MILLIMETRES_PER_PIXEL;
+		}
+		else { //direction == Direction.West
+			width = this.length / Model.MILLIMETRES_PER_PIXEL;
+			length = this.width / Model.MILLIMETRES_PER_PIXEL;
+			
+			topLeftX = xPos / Model.MILLIMETRES_PER_PIXEL - width;
+			topLeftY = yPos / Model.MILLIMETRES_PER_PIXEL - length / 2;
+		}
+		
+		g.fillRect(topLeftX, topLeftY, width, length);
 	}
 }

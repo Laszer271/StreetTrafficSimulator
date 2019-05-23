@@ -1,4 +1,4 @@
-package trafficSimmulation;
+package trafficSimulation;
 
 public enum Direction {
 	North,
